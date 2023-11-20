@@ -24,6 +24,8 @@ pub fn initCursesApplication() InitError!void {
         return error.DelaySetError;
     }
 
+    util.log("Window size: {}x{}", .{ c.COLS, c.LINES });
+
     return;
 }
 
