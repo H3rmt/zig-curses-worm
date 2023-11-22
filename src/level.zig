@@ -94,7 +94,7 @@ fn getLastRow() i32 {
 
 pub const Dir = struct { x: i32, y: i32 };
 
-pub const ExecErrors = error{ MoveError, AttrSetError, OutOfBoundsError, RefreshError, NapmsError };
+pub const ExecErrors = error{ MoveError, AttrSetError, OutOfBoundsError, RefreshError, NapmsError, SetDelayError };
 
 fn readUserInput(new_dir: *Dir) bool {
     const ch = c.getch();
@@ -107,6 +107,18 @@ fn readUserInput(new_dir: *Dir) bool {
         's', c.KEY_DOWN => setWormHeading(Direction.Down),
         'a', c.KEY_LEFT => setWormHeading(Direction.Left),
         'd', c.KEY_RIGHT => setWormHeading(Direction.Right),
+        ' ' => blk: {
+            if (c.nodelay(c.stdscr, true) == 1) {
+                util.log("Error setting delay {}", .{error.SetDelayError});
+            }
+            break :blk new_dir.*;
+        },
+        'z' => blk: {
+            if (c.nodelay(c.stdscr, false) == 1) {
+                util.log("Error setting delay {}", .{error.SetDelayError});
+            }
+            break :blk new_dir.*;
+        },
         else => new_dir.*,
     };
     util.log("dir: {}", .{dir});
