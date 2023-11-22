@@ -22,14 +22,17 @@ pub fn doLevel() !void {
     var new_dir: Dir = setWormHeading(Direction.Right);
 
     while (true) {
-        headindex = (headindex + 1) % 20;
-
+        const next_index = (headindex + 1) % 20;
+        const prev_index = (headindex + 2) % 20;
+        _ = prev_index;
         const state = readUserInput(&new_dir);
         if (state) {
             break;
         }
 
-        moveWorm(&worm_y_array, &worm_x_array, headindex, new_dir) catch |err|
+        try cleanTail(worm_y_array[next_index], worm_x_array[next_index]);
+
+        moveWorm(&worm_y_array, &worm_x_array, headindex, next_index, new_dir) catch |err|
             switch (err) {
             error.OutOfBoundsError => {
                 util.logS("Out of bounds");
@@ -38,19 +41,16 @@ pub fn doLevel() !void {
             else => return err,
         };
 
-        try showSym(worm_y_array[headindex], worm_x_array[headindex], '0');
-        try cleanTail(&worm_y_array, &worm_x_array, headindex);
+        try showSym(worm_y_array[next_index], worm_x_array[next_index], '0');
 
+        headindex = next_index;
         if (c.napms(100) == 1)
             return error.NapmsError;
     }
     util.logS("Finished");
 }
 
-fn cleanTail(worm_y_array: *[20]i32, worm_x_array: *[20]i32, headindex: usize) ExecErrors!void {
-    const prev_x = worm_x_array[(headindex + 1) % 20];
-    const prev_y = worm_y_array[(headindex + 1) % 20];
-
+fn cleanTail(prev_y: i32, prev_x: i32) ExecErrors!void {
     if (c.attron(c.COLOR_PAIR(0)) == 1) { // 1 = failed, 0 = success
         return error.AttrSetError;
     }
@@ -65,28 +65,17 @@ fn cleanTail(worm_y_array: *[20]i32, worm_x_array: *[20]i32, headindex: usize) E
     }
 }
 
-fn moveWorm(worm_y_array: *[20]i32, worm_x_array: *[20]i32, headindex: usize, new_dir: Dir) ExecErrors!void {
-    // for (worm_y_array, 0..) |row, i| {
-    //     _ = row;
-    //     util.log("elem: {}x{}", .{ worm_y_array[i], worm_x_array[i] });
-    // }
-    const prev_x = worm_x_array[(headindex + 19) % 20];
-    const prev_y = worm_y_array[(headindex + 19) % 20];
-
-    worm_y_array[headindex] = prev_y + new_dir.y;
-    worm_x_array[headindex] = prev_x + new_dir.x;
-    util.log("y:{}, x:{} i:{}", .{ worm_y_array[headindex], worm_x_array[headindex], headindex });
-
-    // if (true)
-    // return error.MoveError;
-
-    if (worm_x_array[headindex] < 0) {
+fn moveWorm(worm_y_array: *[20]i32, worm_x_array: *[20]i32, headindex: usize, next_index: usize, new_dir: Dir) ExecErrors!void {
+    worm_y_array[next_index] = worm_y_array[headindex] + new_dir.y;
+    worm_x_array[next_index] = worm_x_array[headindex] + new_dir.x;
+    // util.log("y:{}, x:{} i:{}", .{ worm_y_array[next_index], worm_x_array[next_index], headindex });
+    if (worm_x_array[next_index] < 0) {
         return error.OutOfBoundsError;
-    } else if (worm_x_array[headindex] > getLastCol()) {
+    } else if (worm_x_array[next_index] > getLastCol()) {
         return error.OutOfBoundsError;
-    } else if (worm_y_array[headindex] < 0) {
+    } else if (worm_y_array[next_index] < 0) {
         return error.OutOfBoundsError;
-    } else if (worm_y_array[headindex] > getLastRow()) {
+    } else if (worm_y_array[next_index] > getLastRow()) {
         return error.OutOfBoundsError;
     }
 }
