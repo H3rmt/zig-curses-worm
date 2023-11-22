@@ -3,28 +3,24 @@ const c = @cImport({
 });
 
 const std = @import("std");
+const mem = std.mem;
 
 const util = @import("util.zig");
 
 pub fn doLevel() !void {
-    var worm_y_array: [20]i32 = undefined;
-    var worm_x_array: [20]i32 = undefined;
-    var maxindex: usize = 0;
-    _ = maxindex;
+    var worm_y_array = mem.zeroes([20]i32);
+    var worm_x_array = mem.zeroes([20]i32);
+    var maxindex: usize = 10;
     var headindex: usize = 0;
 
     worm_y_array[0] = getLastRow();
-    worm_x_array[0] = 10;
-
-    util.log("worm_y: {}, worm_x: {}", .{ worm_y_array[headindex], worm_x_array[headindex] });
+    worm_x_array[0] = 0;
 
     try showSym(worm_y_array[headindex], worm_x_array[headindex], '0');
     var new_dir: Dir = setWormHeading(Direction.Right);
 
     while (true) {
-        const next_index = (headindex + 1) % 20;
-        const prev_index = (headindex + 2) % 20;
-        _ = prev_index;
+        const next_index = (headindex + 1) % maxindex;
         const state = readUserInput(&new_dir);
         if (state) {
             break;
@@ -118,7 +114,6 @@ fn readUserInput(new_dir: *Dir) bool {
     const ch = c.getch();
     const dir = switch (ch) {
         'q' => {
-            // std.os.exit(0);
             return true;
         },
         'w', c.KEY_UP => setWormHeading(Direction.Up),
