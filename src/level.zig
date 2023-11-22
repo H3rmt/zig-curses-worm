@@ -7,30 +7,29 @@ const std = @import("std");
 const util = @import("util.zig");
 
 pub fn doLevel() !void {
-    var worm_y: i32 = getLastRow();
-    var worm_x: i32 = 0;
-    // var worm_y: i32 = 10;
-    // var worm_x: i32 = 10;
+    var worm_y_array: [20]i32 = undefined;
+    var worm_x_array: [20]i32 = undefined;
+    var maxindex: usize = 0;
+    _ = maxindex;
+    var headindex: usize = 0;
 
-    util.log("worm_y: {}, worm_x: {}", .{ worm_y, worm_x });
+    worm_y_array[0] = getLastRow();
+    worm_x_array[0] = 10;
 
-    // try showWorm(worm_y, worm_x, '@');
-    // try showSymbol(0, 0, 'A');
-    // try showSymbol(0, getLastCol(), 'B');
-    // try showSymbol(getLastRow(), getLastCol(), 'C');
-    // try showSymbol(getLastRow(), 0, 'D');
+    util.log("worm_y: {}, worm_x: {}", .{ worm_y_array[headindex], worm_x_array[headindex] });
 
-    try showSymbol(worm_y, worm_x, '0');
+    try showSym(worm_y_array[headindex], worm_x_array[headindex], '0');
     var new_dir: Dir = setWormHeading(Direction.Right);
 
     while (true) {
+        headindex = (headindex + 1) % 20;
+
         const state = readUserInput(&new_dir);
         if (state) {
             break;
         }
-        util.log("y:{}, x:{}", .{ worm_y, worm_x });
 
-        moveWorm(&worm_y, &worm_x, new_dir) catch |err|
+        moveWorm(&worm_y_array, &worm_x_array, headindex, new_dir) catch |err|
             switch (err) {
             error.OutOfBoundsError => {
                 util.logS("Out of bounds");
@@ -38,7 +37,9 @@ pub fn doLevel() !void {
             },
             else => return err,
         };
-        try showSymbol(worm_y, worm_x, '0');
+
+        try showSym(worm_y_array[headindex], worm_x_array[headindex], '0');
+        try cleanTail(&worm_y_array, &worm_x_array, headindex);
 
         if (c.napms(100) == 1)
             return error.NapmsError;
@@ -46,17 +47,46 @@ pub fn doLevel() !void {
     util.logS("Finished");
 }
 
-fn moveWorm(worm_y: *i32, worm_x: *i32, new_dir: Dir) ExecErrors!void {
-    worm_x.* += new_dir.x;
-    worm_y.* += new_dir.y;
+fn cleanTail(worm_y_array: *[20]i32, worm_x_array: *[20]i32, headindex: usize) ExecErrors!void {
+    const prev_x = worm_x_array[(headindex + 1) % 20];
+    const prev_y = worm_y_array[(headindex + 1) % 20];
 
-    if (worm_x.* < 0) {
+    if (c.attron(c.COLOR_PAIR(0)) == 1) { // 1 = failed, 0 = success
+        return error.AttrSetError;
+    }
+    if (c.mvaddch(prev_y, prev_x, ' ') == 1) { // 1 = failed, 0 = success
+        return error.MoveError;
+    }
+    if (c.attroff(c.COLOR_PAIR(0)) == 1) { // 1 = failed, 0 = success
+        return error.AttrSetError;
+    }
+    if (c.refresh() == 1) { // 1 = failed, 0 = success
+        return error.RefreshError;
+    }
+}
+
+fn moveWorm(worm_y_array: *[20]i32, worm_x_array: *[20]i32, headindex: usize, new_dir: Dir) ExecErrors!void {
+    // for (worm_y_array, 0..) |row, i| {
+    //     _ = row;
+    //     util.log("elem: {}x{}", .{ worm_y_array[i], worm_x_array[i] });
+    // }
+    const prev_x = worm_x_array[(headindex + 19) % 20];
+    const prev_y = worm_y_array[(headindex + 19) % 20];
+
+    worm_y_array[headindex] = prev_y + new_dir.y;
+    worm_x_array[headindex] = prev_x + new_dir.x;
+    util.log("y:{}, x:{} i:{}", .{ worm_y_array[headindex], worm_x_array[headindex], headindex });
+
+    // if (true)
+    // return error.MoveError;
+
+    if (worm_x_array[headindex] < 0) {
         return error.OutOfBoundsError;
-    } else if (worm_x.* > getLastCol()) {
+    } else if (worm_x_array[headindex] > getLastCol()) {
         return error.OutOfBoundsError;
-    } else if (worm_y.* < 0) {
+    } else if (worm_y_array[headindex] < 0) {
         return error.OutOfBoundsError;
-    } else if (worm_y.* > getLastRow()) {
+    } else if (worm_y_array[headindex] > getLastRow()) {
         return error.OutOfBoundsError;
     }
 }
@@ -68,8 +98,7 @@ const Direction = enum {
     Right,
 };
 
-fn showSymbol(y: i32, x: i32, symbol: c.chtype) ExecErrors!void {
-    // util.log("Symbol: y:{}, x:{}", .{ y, x });
+fn showSym(y: i32, x: i32, symbol: c.chtype) ExecErrors!void {
     if (c.attron(c.COLOR_PAIR(1)) == 1) { // 1 = failed, 0 = success
         return error.AttrSetError;
     }

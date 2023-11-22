@@ -54,6 +54,9 @@ pub fn initColors() InitColorsError!void {
     if (c.start_color() == 1) { // 1 = failed, 0 = success
         return error.StartColorError;
     }
+    if (c.init_pair(0, c.COLOR_BLACK, c.COLOR_BLACK) == 1) { // 1 = failed, 0 = success
+        return error.InitPairError;
+    }
     if (c.init_pair(1, c.COLOR_RED, c.COLOR_BLACK) == 1) { // 1 = failed, 0 = success
         return error.InitPairError;
     }
