@@ -1,0 +1,63 @@
+
+Starting Courses
+Window size: 94x19
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 0, .y = 1 }
+dir: level.Dir{ .x = 0, .y = 1 }
+dir: level.Dir{ .x = 0, .y = 1 }
+dir: level.Dir{ .x = 0, .y = 1 }
+dir: level.Dir{ .x = 0, .y = 1 }
+dir: level.Dir{ .x = -1, .y = 0 }
+dir: level.Dir{ .x = -1, .y = 0 }
+dir: level.Dir{ .x = -1, .y = 0 }
+dir: level.Dir{ .x = -1, .y = 0 }
+dir: level.Dir{ .x = -1, .y = 0 }
+dir: level.Dir{ .x = -1, .y = 0 }
+dir: level.Dir{ .x = -1, .y = 0 }
+dir: level.Dir{ .x = -1, .y = 0 }
+dir: level.Dir{ .x = 0, .y = 1 }
+dir: level.Dir{ .x = 0, .y = 1 }
+dir: level.Dir{ .x = 0, .y = 1 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 1, .y = 0 }
+dir: level.Dir{ .x = 0, .y = -1 }
+dir: level.Dir{ .x = 0, .y = -1 }
+dir: level.Dir{ .x = 0, .y = -1 }
+CollisionError
+Finished
+Cleaned Courses

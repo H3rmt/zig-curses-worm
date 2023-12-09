@@ -60,6 +60,9 @@ pub fn initColors() InitColorsError!void {
     if (c.init_pair(1, c.COLOR_RED, c.COLOR_BLACK) == 1) { // 1 = failed, 0 = success
         return error.InitPairError;
     }
+    if (c.init_pair(2, c.COLOR_CYAN, c.COLOR_BLACK) == 1) { // 1 = failed, 0 = success
+        return error.InitPairError;
+    }
     return;
 }
 

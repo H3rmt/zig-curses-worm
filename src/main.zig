@@ -5,7 +5,7 @@ const level = @import("level.zig");
 const init = @import("init.zig");
 
 pub fn main() !void {
-    util.logS("Starting Courses");
+    util.logS("\nStarting Courses");
 
     try init.initCursesApplication();
     defer {

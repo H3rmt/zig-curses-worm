@@ -7,16 +7,20 @@ const mem = std.mem;
 
 const util = @import("util.zig");
 
+const max_head = 30;
+const nap_time = 100;
+
 pub fn doLevel() !void {
-    var worm_y_array = mem.zeroes([20]i32);
-    var worm_x_array = mem.zeroes([20]i32);
-    var maxindex: usize = 10;
+    // TODO keine 0 nehmen
+    var worm_y_array = [_]?i32{null} ** max_head;
+    var worm_x_array = [_]?i32{null} ** max_head;
+    var maxindex: usize = 20;
+
     var headindex: usize = 0;
+    worm_y_array[0] = 2; // getLastRow();
+    worm_x_array[0] = 2;
 
-    worm_y_array[0] = getLastRow();
-    worm_x_array[0] = 0;
-
-    try showSym(worm_y_array[headindex], worm_x_array[headindex], '0');
+    try showSym(worm_y_array[headindex], worm_x_array[headindex], '0', 1);
     var new_dir: Dir = setWormHeading(Direction.Right);
 
     while (true) {
@@ -26,53 +30,63 @@ pub fn doLevel() !void {
             break;
         }
 
-        try cleanTail(worm_y_array[next_index], worm_x_array[next_index]);
+        // clean tail
+        try showSym(worm_y_array[next_index], worm_x_array[next_index], ' ', 0);
 
-        moveWorm(&worm_y_array, &worm_x_array, headindex, next_index, new_dir) catch |err|
+        moveWorm(&worm_y_array, &worm_x_array, headindex, next_index, new_dir, maxindex) catch |err|
             switch (err) {
             error.OutOfBoundsError => {
                 util.logS("Out of bounds");
                 break;
             },
+            error.CollisionError => {
+                util.logS("CollisionError");
+                break;
+            },
             else => return err,
         };
 
-        try showSym(worm_y_array[next_index], worm_x_array[next_index], '0');
+        try showSym(worm_y_array[next_index], worm_x_array[next_index], '0', 1);
 
         headindex = next_index;
-        if (c.napms(100) == 1)
+        if (c.napms(nap_time) == 1)
             return error.NapmsError;
     }
+
+    // show dead worm
+    try showSym(worm_y_array[headindex], worm_x_array[headindex], '0', 2);
+
+    if (c.napms(nap_time * 5) == 1)
+        return error.NapmsError;
     util.logS("Finished");
 }
 
-fn cleanTail(prev_y: i32, prev_x: i32) ExecErrors!void {
-    if (c.attron(c.COLOR_PAIR(0)) == 1) { // 1 = failed, 0 = success
-        return error.AttrSetError;
-    }
-    if (c.mvaddch(prev_y, prev_x, ' ') == 1) { // 1 = failed, 0 = success
-        return error.MoveError;
-    }
-    if (c.attroff(c.COLOR_PAIR(0)) == 1) { // 1 = failed, 0 = success
-        return error.AttrSetError;
-    }
-    if (c.refresh() == 1) { // 1 = failed, 0 = success
-        return error.RefreshError;
-    }
-}
+fn moveWorm(worm_y_array: *[max_head]?i32, worm_x_array: *[max_head]?i32, headindex: usize, next_index: usize, new_dir: Dir, maxindex: usize) ExecErrors!void {
+    if (worm_y_array[headindex]) |y| {
+        if (worm_x_array[headindex]) |x| {
+            var new_y = y + new_dir.y;
+            var new_x = x + new_dir.x;
 
-fn moveWorm(worm_y_array: *[20]i32, worm_x_array: *[20]i32, headindex: usize, next_index: usize, new_dir: Dir) ExecErrors!void {
-    worm_y_array[next_index] = worm_y_array[headindex] + new_dir.y;
-    worm_x_array[next_index] = worm_x_array[headindex] + new_dir.x;
-    // util.log("y:{}, x:{} i:{}", .{ worm_y_array[next_index], worm_x_array[next_index], headindex });
-    if (worm_x_array[next_index] < 0) {
-        return error.OutOfBoundsError;
-    } else if (worm_x_array[next_index] > getLastCol()) {
-        return error.OutOfBoundsError;
-    } else if (worm_y_array[next_index] < 0) {
-        return error.OutOfBoundsError;
-    } else if (worm_y_array[next_index] > getLastRow()) {
-        return error.OutOfBoundsError;
+            if (new_x < 0) {
+                return error.OutOfBoundsError;
+            } else if (new_x > getLastCol()) {
+                return error.OutOfBoundsError;
+            } else if (new_y < 0) {
+                return error.OutOfBoundsError;
+            } else if (new_y > getLastRow()) {
+                return error.OutOfBoundsError;
+            } else if (collideWorm(worm_y_array, worm_x_array, new_y, new_x, maxindex)) {
+                return error.CollisionError;
+            }
+
+            worm_y_array[next_index] = new_y;
+            worm_x_array[next_index] = new_x;
+            // util.log("y:{}, x:{} i:{}", .{ worm_y_array[next_index], worm_x_array[next_index], headindex });
+        } else {
+            return error.UndefinedHeadError;
+        }
+    } else {
+        return error.UndefinedHeadError;
     }
 }
 
@@ -83,14 +97,15 @@ const Direction = enum {
     Right,
 };
 
-fn showSym(y: i32, x: i32, symbol: c.chtype) ExecErrors!void {
-    if (c.attron(c.COLOR_PAIR(1)) == 1) { // 1 = failed, 0 = success
+fn showSym(y: ?i32, x: ?i32, symbol: c.chtype, cp: i32) ExecErrors!void {
+    if (c.attron(c.COLOR_PAIR(cp)) == 1) { // 1 = failed, 0 = success
         return error.AttrSetError;
     }
-    if (c.mvaddch(y, x, symbol) == 1) { // 1 = failed, 0 = success
+    // return if (y == null or x == null); (tail to clean does not have a position)
+    if (c.mvaddch(y orelse return, x orelse return, symbol) == 1) { // 1 = failed, 0 = success
         return error.MoveError;
     }
-    if (c.attroff(c.COLOR_PAIR(1)) == 1) { // 1 = failed, 0 = success
+    if (c.attroff(c.COLOR_PAIR(cp)) == 1) { // 1 = failed, 0 = success
         return error.AttrSetError;
     }
     if (c.refresh() == 1) { // 1 = failed, 0 = success
@@ -108,7 +123,7 @@ fn getLastRow() i32 {
 
 pub const Dir = struct { x: i32, y: i32 };
 
-pub const ExecErrors = error{ MoveError, AttrSetError, OutOfBoundsError, RefreshError, NapmsError, SetDelayError };
+pub const ExecErrors = error{ MoveError, AttrSetError, OutOfBoundsError, RefreshError, NapmsError, SetDelayError, CollisionError, UndefinedHeadError };
 
 fn readUserInput(new_dir: *Dir) bool {
     const ch = c.getch();
@@ -136,6 +151,15 @@ fn readUserInput(new_dir: *Dir) bool {
     };
     util.log("dir: {}", .{dir});
     new_dir.* = dir;
+    return false;
+}
+
+fn collideWorm(worm_y_array: *[max_head]?i32, worm_x_array: *[max_head]?i32, new_y: i32, new_x: i32, maxindex: usize) bool {
+    for (0..maxindex) |i| {
+        if (worm_y_array[i] == new_y and worm_x_array[i] == new_x) {
+            return true;
+        }
+    }
     return false;
 }
 
